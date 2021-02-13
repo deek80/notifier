@@ -1,24 +1,23 @@
 package com.example.notifier.unit
 
 import org.junit.Test
-
-import org.junit.Assert.*
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import org.junit.Assert.assertEquals
 
 
 /**
  * These tests are more for confirming my understanding of calendar math than they are for
  * confirming functionality of my code.
+ *
+ * In Halifax 2021:
+ *   - DST starts March 14 at 2am (becomes 3am)
+ *   - DST ends Nov 7 at 2am (becomes 1am)
  */
 class DateTimeMathTest {
-    private val halifax = ZoneId.of("America/Halifax")
-    // in Halifax 2021, DST starts March 14 at 2am (becomes 3am)
-    private val beforeDstStart = ZonedDateTime.of(2021, 3, 13, 7, 0, 0, 0, halifax)
-    private val afterDstStart = ZonedDateTime.of(2021, 3, 14, 7, 0, 0, 0, halifax)
-    // DST ends Nov 7 at 2am (becomes 1am)
-    private val beforeDstEnd = ZonedDateTime.of(2021, 11, 6, 7, 0, 0, 0, halifax)
-    private val afterDstEnd = ZonedDateTime.of(2021, 11, 7, 7, 0, 0, 0, halifax)
+    private val beforeDstStart = hfxTime(2021, 3, 13, 7, 0)
+    private val afterDstStart = hfxTime(2021, 3, 14, 7, 0)
+
+    private val beforeDstEnd = hfxTime(2021, 11, 6, 7, 0)
+    private val afterDstEnd = hfxTime(2021, 11, 7, 7, 0)
 
     @Test
     fun calendarMathIgnoresDST() {
@@ -34,22 +33,23 @@ class DateTimeMathTest {
 
     @Test
     fun constructorCorrectsInvalidDateTimes() {
-        val ambiguous = ZonedDateTime.of(2021, 3, 14, 2, 0, 0, 0, halifax)
-        val standard = ZonedDateTime.of(2021, 3, 14, 3, 0, 0, 0, halifax)
+        val ambiguous = hfxTime(2021, 3, 14, 2, 0)
+        val standard = hfxTime(2021, 3, 14, 3, 0)
         assertEquals("March 14 at 2:00 am gets adjusted to the unambiguous 3:00am", ambiguous, standard)
     }
 
     @Test
     fun edgeOfDstStart() {
-        val before = ZonedDateTime.of(2021, 3, 14, 1, 59, 0, 0, halifax)
-        val after = ZonedDateTime.of(2021, 3, 14, 3, 0, 0, 0, halifax)
+        val before = hfxTime(2021, 3, 14, 1, 59)
+        val after = hfxTime(2021, 3, 14, 3, 0)
         assertEquals("2021-03-14: 1:59 refers to before DST starting, 3:00 refers to after DST starting", before.plusMinutes(1), after)
     }
 
     @Test
     fun edgeOfDstEnd() {
-        val before = ZonedDateTime.of(2021, 11, 7, 1, 59, 0, 0, halifax)
-        val after  = ZonedDateTime.of(2021, 11, 7, 2, 0, 0, 0, halifax)
+        val before = hfxTime(2021, 11, 7, 1, 59)
+        val after  = hfxTime(2021, 11, 7, 2, 0)
         assertEquals("2021-11-07: 1:59 refers to before DST ending, 2:00 refers to after DST ending", before.plusMinutes(61), after)
+        // note that there's no great way to refer to the "second 1am"
     }
 }

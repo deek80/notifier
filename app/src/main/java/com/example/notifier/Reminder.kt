@@ -1,23 +1,19 @@
 package com.example.notifier
+import java.time.DayOfWeek
+import java.time.ZonedDateTime
+import java.time.Period
 
-import java.util.Calendar
+private val allDays = DayOfWeek.values().toSet()
 
-enum class Day {
-    SU, MO, TU, WE, TH, FR, SA;
+data class Reminder(val id: Int, val start: ZonedDateTime, val period: Period = Period.ZERO, val days: Set<DayOfWeek> = allDays) {
+    fun occurrenceAfter(now: ZonedDateTime): ZonedDateTime {
+        if (start.isAfter(now) || period == Period.ZERO) {
+            return start
+        }
+
+        return ZonedDateTime.now()
+    }
 }
-private val allDays = Day.values().toSet()
-
-// I think I'll need two different interval types...a time interval, and a calendar interval
-// for counting things like months or years. then again, maybe 99% of what I want to achieve
-// could be done with time intervals. hmm, yeah time intervals (like # of millis) could cover
-// half days, days, weeks.  you'd only need something more complicated for alarms like
-// "3rd day of every month". and even then you could probably get around that with a bit of
-// annoying computation (a daily alarm with allowed_month_days = [3]) and then you'd chug thorough
-// like 30 days trying to find the next available one. but that's a weird enough case and you'd
-// only have to compute that once per ~30 days.
-data class Reminder(val id: Int, val startTime: Long, val interval: Long, val days: Set<Day> = allDays)
-
-
 /*
 use case:
 it's 2021-01-30 at 14:29:33. the alarm callback awakens and is told to send notification id=4
