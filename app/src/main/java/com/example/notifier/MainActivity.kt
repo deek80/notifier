@@ -13,6 +13,7 @@ import android.util.Log
 import android.widget.Button
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,8 +25,31 @@ class MainActivity : AppCompatActivity() {
         val btn = findViewById<Button>(R.id.btn)
         btn.setOnClickListener {
             Log.d("CLICK", "button was clicked")
-            showNotification("exact", "Test", "hello, world")
+            // showNotification("exact", "Test", "hello, world")
+            alarmExampleFromDocs()
         }
+    }
+
+    private fun alarmExampleFromDocs() {
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val alarmIntent = Intent(this, AlarmReceiver::class.java).let { intent ->
+          PendingIntent.getBroadcast(this, 0, intent, 0)
+        }
+
+        // Set the alarm to start at 8:30 a.m.
+        val calendar: Calendar = Calendar.getInstance().apply {
+          timeInMillis = System.currentTimeMillis()
+          set(Calendar.HOUR_OF_DAY, 16)
+          set(Calendar.MINUTE, 15)
+        }
+
+        alarmManager.setRepeating(
+          AlarmManager.RTC_WAKEUP,
+          calendar.timeInMillis,
+          1000 * 60 * 30,
+          alarmIntent
+        )
+        
     }
 
     private fun showNotification(channel: String, title: String, text: String) {
