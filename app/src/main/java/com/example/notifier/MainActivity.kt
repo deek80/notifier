@@ -40,38 +40,19 @@ class MainActivity : AppCompatActivity() {
         val calendar: Calendar = Calendar.getInstance().apply {
           timeInMillis = System.currentTimeMillis()
           set(Calendar.HOUR_OF_DAY, 16)
-          set(Calendar.MINUTE, 15)
+          set(Calendar.MINUTE, 45)
         }
 
-        alarmManager.setRepeating(
+        alarmManager.cancel(alarmIntent)
+        alarmManager.setInexactRepeating(
           AlarmManager.RTC_WAKEUP,
           calendar.timeInMillis,
-          1000 * 60 * 30,
+          1000 * 60 * 15,
           alarmIntent
         )
         
     }
 
-    private fun showNotification(channel: String, title: String, text: String) {
-        // Create an explicit intent for an Activity in your app
-        val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
-
-        val builder = NotificationCompat.Builder(this, channel)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle(title)
-                .setContentText(text)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setContentIntent(pendingIntent)
-                .setAutoCancel(true)
-
-        with(NotificationManagerCompat.from(this)) {
-            // notificationId is a unique int for each notification that you must define
-            notify(channel.hashCode(), builder.build())
-        }
-    }
 
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
