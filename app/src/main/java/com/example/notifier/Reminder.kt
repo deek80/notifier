@@ -1,52 +1,57 @@
 package com.example.notifier
+
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
-import java.time.Period
 import java.time.temporal.ChronoUnit
 
-private val allDays = DayOfWeek.values().toSet()
 
-data class Reminder(val id: Int, val start: ZonedDateTime, val period: Period = Period.ZERO, val days: Set<DayOfWeek> = allDays) {
+data class OneTimeReminder(val id: Int, val start: ZonedDateTime)
+
+data class DailyReminder(
+    val id: Int,
+    val start: ZonedDateTime,
+    val repeatEvery: Long = 1L,
+    val onDays: Set<DayOfWeek> = DayOfWeek.values().toSet()
+) {
     init {
-        require(period.days == 0 || period.toTotalMonths() == 0L) {
-            "Repeat period of both both days and months is not supported"
-        }
+        require(repeatEvery > 0L) { "Repeat interval must be positive" }
+        require(repeatEvery % 7L != 0L || onDays.contains(start.dayOfWeek)) { "Must have occurrences" }
     }
 
-    fun occurrenceAfter(now: ZonedDateTime): ZonedDateTime {
-        if (start.isAfter(now) || period == Period.ZERO) {
+    private fun findValidOccurrence(startingWith: ZonedDateTime): ZonedDateTime {
+        var candidate = startingWith
+        for (i in 1..15) {  // I think 7 is mathematically enough...but :shrug:
+            if (onDays.contains(candidate.dayOfWeek)) {
+                return candidate
+            }
+            candidate = candidate.plusDays(repeatEvery)
+        }
+        throw IllegalStateException("Could not find any occurrences of reminder $id")
+    }
+
+    private fun nextPossibleOccurrence(after: ZonedDateTime): ZonedDateTime {
+        if (after.isBefore(start)) {
             return start
         }
+        val periodsGoneBy = ChronoUnit.DAYS.between(start, after) / repeatEvery
+        return start.plusDays((periodsGoneBy + 1L) * repeatEvery)
+    }
 
-        if (period.days != 0) {
-            val periodsGoneBy = (ChronoUnit.DAYS.between(start, now) / period.days).toInt()
-            return start.plus(period.multipliedBy(periodsGoneBy + 1))
-        }
-
-        val periodsGoneBy = (ChronoUnit.MONTHS.between(start, now) / period.toTotalMonths()).toInt()
-        return start.plus(period.multipliedBy(periodsGoneBy + 1))
+    fun nextOccurrence(after: ZonedDateTime): ZonedDateTime {
+        return findValidOccurrence(nextPossibleOccurrence(after))
     }
 }
-/*
-use case:
-it's 2021-01-30 at 14:29:33. the alarm callback awakens and is told to send notification id=4
-  1. send that notification
-  2. check if that notification is recurring and schedule the next one
 
-1: easy
-2: if recurring: ahhh, here's where the locale comes into play.  if you just count `interval`s from
-   `startTime` then you'll get out of sync after a time change. instead, you need to do "calendar math"
-   rather than "interval math".
+data class MonthlyReminder(val id: Int, val start: ZonedDateTime, val repeatEvery: Long = 1L) {
+    init {
+        require(repeatEvery > 0L) { "Repeat interval must be positive" }
+    }
 
-example:
-   startTime: 2021-03-13 11:00:00 (March 13 at 11am, time changes March 14 at 2am)
-   interval: daily
-
- wrong way
-   next time = startTime + 24h = 2021-03-14 12:00:00     oops!
-
- right way
-   next time = startTime + 1 "day" = 2021-03-14 11:00:00
-
-
- */
+    fun nextOccurrence(after: ZonedDateTime): ZonedDateTime {
+        if (after.isBefore(start)) {
+            return start
+        }
+        val periodsGoneBy = ChronoUnit.MONTHS.between(start, after) / repeatEvery
+        return start.plusMonths((periodsGoneBy + 1L) * repeatEvery)
+    }
+}
