@@ -31,9 +31,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun alarmExampleFromDocs() {
+        val alarmUniqueId = 1234;
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val alarmIntent = Intent(this, AlarmReceiver::class.java).let { intent ->
-          PendingIntent.getBroadcast(this, 0, intent, 0)
+        val alarmIntent = Intent(this, AlarmReceiver::class.java).let {
+          PendingIntent.getBroadcast(this, alarmUniqueId, it, 0)
         }
 
         // Set the alarm to start at 8:30 a.m.
@@ -41,10 +42,12 @@ class MainActivity : AppCompatActivity() {
           timeInMillis = System.currentTimeMillis()
           set(Calendar.HOUR_OF_DAY, 16)
           set(Calendar.MINUTE, 45)
+          set(Calendar.SECOND, 0)
+          set(Calendar.MILLISECOND, 0)
         }
 
         alarmManager.cancel(alarmIntent)
-        alarmManager.setInexactRepeating(
+        alarmManager.setRepeating(
           AlarmManager.RTC_WAKEUP,
           calendar.timeInMillis,
           1000 * 60 * 15,
