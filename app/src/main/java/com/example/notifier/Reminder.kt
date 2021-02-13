@@ -2,6 +2,7 @@ package com.example.notifier
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
 import java.time.Period
+import java.time.temporal.ChronoUnit
 
 private val allDays = DayOfWeek.values().toSet()
 
@@ -11,7 +12,12 @@ data class Reminder(val id: Int, val start: ZonedDateTime, val period: Period = 
             return start
         }
 
-        return ZonedDateTime.now()
+        if (period.toTotalMonths() == 0L) {
+            val periodsGoneBy = (ChronoUnit.DAYS.between(start, now) / period.days).toInt()
+            return start.plus(period.multipliedBy(periodsGoneBy + 1))
+        }
+
+        throw NotImplementedError("can't support period of months yet")
     }
 }
 /*
