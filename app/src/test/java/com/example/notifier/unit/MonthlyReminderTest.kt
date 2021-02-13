@@ -14,9 +14,9 @@ import java.time.ZonedDateTime
 class MonthlyReminderTest {
     private val someDay = hfxTime(2021, 1, 1, 1, 1)
 
-    private val monthly = MonthlyReminder(1, someDay, 1)
-    private val bimonthly = MonthlyReminder(2, someDay, 2)
-    private val quarterly = MonthlyReminder(3, someDay, 3)
+    private val monthly = MonthlyReminder(1, someDay, repeatEvery = 1)
+    private val bimonthly = MonthlyReminder(2, someDay, repeatEvery = 2)
+    private val quarterly = MonthlyReminder(3, someDay, repeatEvery = 3)
 
     @Test
     fun nextOccurrenceIsStartTimeForFutureReminders() {
@@ -43,7 +43,7 @@ class MonthlyReminderTest {
     @Test
     fun monthsBetweenReminders() {
         mapOf(monthly to 1L, bimonthly to 2L, quarterly to 3L).forEach { (reminder, interval) ->
-            val occurrenceOne = reminder.nextOccurrence(ZonedDateTime.now())
+            val occurrenceOne = reminder.nextOccurrence(ZonedDateTime.now())!!
             val occurrenceTwo = reminder.nextOccurrence(occurrenceOne)
             assertEquals("should be $interval months between occurrences", occurrenceOne.plusMonths(interval), occurrenceTwo)
         }
@@ -51,6 +51,6 @@ class MonthlyReminderTest {
 
     @Test(expected=IllegalArgumentException::class)
     fun negativeRepeatInterval() {
-        MonthlyReminder(1, ZonedDateTime.now(), -5)
+        MonthlyReminder(1, ZonedDateTime.now(), repeatEvery = -5)
     }
 }

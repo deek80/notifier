@@ -5,14 +5,14 @@ import org.junit.Assert.assertEquals
 
 
 /**
- * These tests are more for confirming my understanding of calendar math than they are for
- * confirming functionality of my code.
+ * These tests are more for confirming my understanding of calendar math and other
+ * libraries/builtins than they are for confirming functionality of my code.
  *
  * In Halifax 2021:
  *   - DST starts March 14 at 2am (becomes 3am)
  *   - DST ends Nov 7 at 2am (becomes 1am)
  */
-class DateTimeMathTest {
+class KotlinBehaviourTest {
     private val beforeDstStart = hfxTime(2021, 3, 13, 7, 0)
     private val afterDstStart = hfxTime(2021, 3, 14, 7, 0)
 
@@ -51,5 +51,19 @@ class DateTimeMathTest {
         val after  = hfxTime(2021, 11, 7, 2, 0)
         assertEquals("2021-11-07: 1:59 refers to before DST ending, 2:00 refers to after DST ending", before.plusMinutes(61), after)
         // note that there's no great way to refer to the "second 1am"
+    }
+
+    @Test
+    fun testGenerateSequenceFirstElement() {
+        // I just wasn't sure if the first seed value was the first thing yielded, looks like it is
+        val first = generateSequence(5) { it * 2 }.first()
+        assertEquals(5, first)
+    }
+
+    @Test
+    fun testGenerateSequenceLastElement() {
+        // I just wasn't sure if the first seed value was the first thing yielded, looks like it is
+        val last = generateSequence(5){it+1}.takeWhile { it < 8 }.last()
+        assertEquals(7, last)
     }
 }
