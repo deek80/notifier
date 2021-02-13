@@ -7,17 +7,24 @@ import java.time.temporal.ChronoUnit
 private val allDays = DayOfWeek.values().toSet()
 
 data class Reminder(val id: Int, val start: ZonedDateTime, val period: Period = Period.ZERO, val days: Set<DayOfWeek> = allDays) {
+    init {
+        require(period.days == 0 || period.toTotalMonths() == 0L) {
+            "Repeat period of both both days and months is not supported"
+        }
+    }
+
     fun occurrenceAfter(now: ZonedDateTime): ZonedDateTime {
         if (start.isAfter(now) || period == Period.ZERO) {
             return start
         }
 
-        if (period.toTotalMonths() == 0L) {
+        if (period.days != 0) {
             val periodsGoneBy = (ChronoUnit.DAYS.between(start, now) / period.days).toInt()
             return start.plus(period.multipliedBy(periodsGoneBy + 1))
         }
 
-        throw NotImplementedError("can't support period of months yet")
+        val periodsGoneBy = (ChronoUnit.MONTHS.between(start, now) / period.toTotalMonths()).toInt()
+        return start.plus(period.multipliedBy(periodsGoneBy + 1))
     }
 }
 /*
